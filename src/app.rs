@@ -61,6 +61,12 @@ impl cosmic::Application for App {
                         widget::column::with_capacity(packages.len() + 1).width(Length::Fill);
                     lang_col = lang_col.push(widget::text::heading(lang));
                     for p in packages.iter() {
+                        // Only show manual packages
+                        //TODO: change config format to make this easier?
+                        if !config.apt_packages.iter().any(|x| x.0 == p.0) {
+                            continue;
+                        }
+
                         lang_col = lang_col.push(widget::checkbox(true).label(&p.0));
                     }
                     langs_col = langs_col.push(lang_col);

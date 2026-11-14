@@ -1,6 +1,6 @@
 use cosmic::{Action, Element, iced::Length, prelude::*, widget};
 
-use crate::{Config, Error};
+use crate::Config;
 
 pub struct App {
     core: cosmic::Core,
@@ -38,18 +38,41 @@ impl cosmic::Application for App {
             Some(Ok(config)) => {
                 let mut apt_col = widget::column::with_capacity(config.apt_packages.len() + 1)
                     .width(Length::Fill);
-                apt_col = apt_col.push(widget::text::heading("APT Manual Packages"));
+                apt_col = apt_col.push(widget::text::title4("Manual Packages"));
                 for p in config.apt_packages.iter() {
+                    // Skip packages included in language packs
+                    //TODO: change config format to make this easier?
+                    if config
+                        .languages
+                        .iter()
+                        .any(|(_, packages)| packages.iter().any(|x| x.0 == p.0))
+                    {
+                        continue;
+                    }
+
                     apt_col = apt_col.push(widget::checkbox(true).label(&p.0));
+                }
+
+                let mut langs_col =
+                    widget::column::with_capacity(config.languages.len() + 1).width(Length::Fill);
+                langs_col = langs_col.push(widget::text::title4("Language Packages"));
+                for (lang, packages) in config.languages.iter() {
+                    let mut lang_col =
+                        widget::column::with_capacity(packages.len() + 1).width(Length::Fill);
+                    lang_col = lang_col.push(widget::text::heading(lang));
+                    for p in packages.iter() {
+                        lang_col = lang_col.push(widget::checkbox(true).label(&p.0));
+                    }
+                    langs_col = langs_col.push(lang_col);
                 }
 
                 let mut flat_col = widget::column::with_capacity(config.flatpak_packages.len() + 1)
                     .width(Length::Fill);
-                flat_col = flat_col.push(widget::text::heading("Flatpak Apps"));
+                flat_col = flat_col.push(widget::text::title4("Flatpak Apps"));
                 for p in config.flatpak_packages.iter() {
                     flat_col = flat_col.push(widget::checkbox(true).label(&p.0));
                 }
-                widget::row!(apt_col, flat_col).into()
+                widget::row!(apt_col, langs_col, flat_col).into()
             }
             Some(Err(err)) => widget::text(err).into(),
             None => widget::text("Loading...").into(),

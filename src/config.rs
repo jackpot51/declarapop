@@ -16,7 +16,11 @@ fn language_packages(lang: &str) -> Result<Vec<AptPackage>, Error> {
     let mut command = process::Command::new("check-language-support");
     command.arg("-l").arg(lang).arg("--show-installed");
     let stdout = command_stdout(command)?;
-    Ok(stdout.split(" ").map(|x| AptPackage(x.into())).collect())
+    Ok(stdout
+        .trim()
+        .split(" ")
+        .map(|x| AptPackage(x.into()))
+        .collect())
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]

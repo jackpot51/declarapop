@@ -46,10 +46,11 @@ fn apt_packages() -> Result<Vec<AptPackage>, Error> {
 }
 
 fn flatpak_packages() -> Result<Vec<FlatpakPackage>, Error> {
-    use libflatpak::{Installation, gio::Cancellable, prelude::*};
+    use libflatpak::{Installation, RefKind, gio::Cancellable, prelude::*};
 
     let inst = Installation::new_user(Cancellable::NONE)?;
-    let refs = inst.list_installed_refs(Cancellable::NONE)?;
+    //TODO: also include pinned runtimes?
+    let refs = inst.list_installed_refs_by_kind(RefKind::App, Cancellable::NONE)?;
     Ok(refs
         .iter()
         .filter_map(|r| r.name().map(|x| FlatpakPackage(x.to_string())))
